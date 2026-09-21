@@ -22,7 +22,9 @@ the epoch: the entry is never seen as stale, never refreshed, and the stale data
 | `GET /data/<id>` (1s later)                           | `200 v2`                | `200 v1`          |
 | `GET /data/<id>` (2s later)                           | `200 v2`                | `200 v1`          |
 
-With `next: { revalidate: 3600 }` on the `fetch`, OpenNext refreshes the data as expected.
+With `next: { revalidate: 3600 }` on the `fetch`, OpenNext refreshes the data as expected. (With the `fs-dev` tag
+cache instead of `fs-dev-nextMode`, the local server behaves differently: it does not serve the stale data at all, the
+first request after `revalidateTag` already gets `v2`.)
 
 ## The repro
 

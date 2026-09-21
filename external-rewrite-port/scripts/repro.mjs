@@ -31,7 +31,7 @@ process.on("SIGINT", stop).on("SIGTERM", stop).on("exit", stop);
 
 // Wait until both servers answer.
 for (const { origin } of TARGETS) {
-  while (!(await fetch(origin).catch(() => null))) await new Promise((resolve) => setTimeout(resolve, 250));
+  while (!(await fetch(`${origin}/ready`).catch(() => null))) await new Promise((resolve) => setTimeout(resolve, 250));
 }
 
 console.log("");
