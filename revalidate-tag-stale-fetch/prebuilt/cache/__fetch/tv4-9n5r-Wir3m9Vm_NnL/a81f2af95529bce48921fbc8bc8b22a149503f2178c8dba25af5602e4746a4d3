@@ -1,0 +1,1 @@
+{"kind":"FETCH","data":{"headers":{"connection":"keep-alive","content-length":"2","date":"Mon, 21 Sep 2026 07:18:24 GMT","keep-alive":"timeout=5"},"body":"djI=","status":200,"url":"http://localhost:3002/data?key=next-start:s6oxqz"},"revalidate":31536000,"tags":["data-s6oxqz"]}

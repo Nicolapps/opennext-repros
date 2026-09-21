@@ -1,0 +1,1 @@
+globalThis.__RSC_MANIFEST=(globalThis.__RSC_MANIFEST||{});globalThis.__RSC_MANIFEST["/data/[id]/route"]={"moduleLoading":{"prefix":"/_next/"},"ssrModuleMapping":{},"edgeSSRModuleMapping":{},"clientModules":{},"entryCSSFiles":{"/Users/Nicolas/Documents/opennext-repros/revalidate-tag-stale-fetch/app/data/[id]/route":[]},"rscModuleMapping":{},"edgeRscModuleMapping":{}};

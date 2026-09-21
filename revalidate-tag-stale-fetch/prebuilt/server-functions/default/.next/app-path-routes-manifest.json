@@ -1,0 +1,7 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/_global-error/page": "/_global-error",
+  "/data/[id]/route": "/data/[id]",
+  "/revalidate/[id]/route": "/revalidate/[id]",
+  "/page": "/"
+}
