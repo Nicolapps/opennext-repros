@@ -1,0 +1,1 @@
+globalThis.__RSC_MANIFEST=(globalThis.__RSC_MANIFEST||{});globalThis.__RSC_MANIFEST["/api/hello/route"]={"moduleLoading":{"prefix":"/_next/"},"ssrModuleMapping":{},"edgeSSRModuleMapping":{},"clientModules":{},"entryCSSFiles":{"/Users/Nicolas/Documents/opennext-repros/trailing-slash-api/app/api/hello/route":[]},"rscModuleMapping":{},"edgeRscModuleMapping":{}};

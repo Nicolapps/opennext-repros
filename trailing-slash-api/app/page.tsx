@@ -1,35 +1,41 @@
-import { headers } from "next/headers";
+import { compare, TARGETS } from "../compare.mjs";
 
 export const dynamic = "force-dynamic";
 
-// Requests `path` on this same server without following redirects, and reports what came back.
-async function probe(path: string) {
-  const host = (await headers()).get("host");
-  const res = await fetch(`http://${host}${path}`, { redirect: "manual", cache: "no-store" });
-  return { path, status: res.status, location: res.headers.get("location") };
-}
-
 export default async function Page() {
-  const results = await Promise.all([probe("/api/hello"), probe("/api/hello/")]);
+  const rows = await compare();
   return (
-    <main>
-      <h1>trailingSlash: true and API routes</h1>
+    <main style={{ fontFamily: "system-ui", padding: 24 }}>
+      <h1>
+        <code>trailingSlash: true</code> and API routes: <code>next start</code> vs OpenNext
+      </h1>
       <p>
-        With <code>trailingSlash: true</code>, Next.js redirects <code>/api/hello</code> to <code>/api/hello/</code>.
+        The same app runs twice: {TARGETS.map((t) => `${t.name} on ${t.origin}`).join(", ")}. Each request below is
+        sent to both, without following redirects.
       </p>
       <table cellPadding={8} style={{ borderCollapse: "collapse" }} data-testid="results">
         <thead>
-          <tr><th align="left">Request</th><th align="left">Status</th><th align="left">Location</th></tr>
+          <tr>
+            <th align="left">Request</th>
+            {TARGETS.map((t) => <th align="left" key={t.name}>{t.name}</th>)}
+            <th />
+          </tr>
         </thead>
         <tbody>
-          {results.map((r) => (
-            <tr key={r.path} style={{ borderTop: "1px solid #ccc" }}>
-              <td><code>GET {r.path}</code></td><td>{r.status}</td><td>{r.location ?? "–"}</td>
+          {rows.map((row) => (
+            <tr key={row.path} style={{ borderTop: "1px solid #ccc", background: row.differs ? "#ffe3e3" : undefined }}>
+              <td><code>GET {row.path}</code></td>
+              {row.answers.map((answer, i) => <td key={i}><code>{answer}</code></td>)}
+              <td>{row.differs ? "≠ differs" : "same"}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <p>Expected (next start): <code>308 → /api/hello/</code>, then <code>200</code>.</p>
+      <p>
+        Expected: identical answers. Actual: <code>next start</code> redirects <code>/api/hello</code> to{" "}
+        <code>/api/hello/</code> (308), OpenNext skips the trailing-slash redirect for <code>/api/*</code> and
+        answers 200.
+      </p>
     </main>
   );
 }
