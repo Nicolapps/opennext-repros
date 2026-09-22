@@ -1,9 +1,10 @@
-// The comparison itself: request ISR pages (revalidate = 2s) on both servers, and count how often they are rendered.
+// The comparison itself: request ISR pages (revalidate = 2s) on the three servers, and count how often they are rendered.
 // Used by the page (app/page.tsx) and by the terminal output of `npm run repro`.
 
 export const TARGETS = [
   { name: "next start", key: "next-start", origin: `http://localhost:${process.env.NEXT_PORT ?? 3000}` },
-  { name: "OpenNext", key: "opennext", origin: `http://localhost:${process.env.OPENNEXT_PORT ?? 3001}` },
+  { name: "OpenNext 4.1.5", key: "opennext", origin: `http://localhost:${process.env.OPENNEXT_PORT ?? 3001}` },
+  { name: "OpenNext + fix", key: "opennext-fixed", origin: `http://localhost:${process.env.OPENNEXT_FIXED_PORT ?? 3003}` },
 ];
 
 const COUNTER = "http://localhost:3002";
@@ -26,12 +27,23 @@ async function rendersFor(target, path) {
   }
 }
 
-/** The two steps for one page. Returns rows: `{ path, answers: [nextStart, openNext], differs }`. */
+/** Compares the answers to the one of `next start`: `{ differs }` for OpenNext 4.1.5, `{ fixed }` for OpenNext + fix. */
+export function verdict([expected, actual, withFix]) {
+  return { differs: actual !== expected, fixed: withFix === expected };
+}
+
+/** Describes a row: "same", or which of the OpenNext answers differ from the one of `next start`. */
+export function status({ differs, fixed }) {
+  if (differs) return fixed ? "≠ 4.1.5 differs, fix matches" : "≠ 4.1.5 differs, fix differs";
+  return fixed ? "same" : "≠ fix differs";
+}
+
+/** The two steps for one page. Returns rows: `{ path, answers: [nextStart, openNext, openNextFixed], differs, fixed }`. */
 async function scenario(path) {
   const rows = [];
   for (const step of ["1st request: not cached yet", "3s later: stale, regenerated in the background"]) {
     const answers = await Promise.all(TARGETS.map((target) => rendersFor(target, path)));
-    rows.push({ path: `GET ${path} (${step})`, answers, differs: new Set(answers).size > 1 });
+    rows.push({ path: `GET ${path} (${step})`, answers, ...verdict(answers) });
   }
   return rows;
 }

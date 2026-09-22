@@ -1,0 +1,8 @@
+{
+  "name": "opennext-fixed",
+  "private": true,
+  "description": "@opennextjs/aws 4.1.5 with a proposed fix (built from source, see README.md). Used by scripts/build-fixed.mjs.",
+  "dependencies": {
+    "@opennextjs/aws": "file:opennextjs-aws-4.1.5-has-query-missing-key.tgz"
+  }
+}

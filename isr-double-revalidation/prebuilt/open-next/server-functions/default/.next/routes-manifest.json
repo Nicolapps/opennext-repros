@@ -59,8 +59,8 @@
       "routeKeys": {
         "nxtPid": "nxtPid"
       },
-      "dataRouteRegex": "^/_next/data/\\-k5ik_WHpxoGN9_g0fgDK/pages\\-isr/([^/]+?)\\.json$",
-      "namedDataRouteRegex": "^/_next/data/\\-k5ik_WHpxoGN9_g0fgDK/pages\\-isr/(?<nxtPid>[^/]+?)\\.json$"
+      "dataRouteRegex": "^/_next/data/q0XtZYN9irBPU2dZ__kdn/pages\\-isr/([^/]+?)\\.json$",
+      "namedDataRouteRegex": "^/_next/data/q0XtZYN9irBPU2dZ__kdn/pages\\-isr/(?<nxtPid>[^/]+?)\\.json$"
     }
   ],
   "rsc": {

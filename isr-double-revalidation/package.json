@@ -6,7 +6,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "repro": "node scripts/repro.mjs",
-    "build:prebuilt": "open-next build && node scripts/prebuilt.mjs pack"
+    "build:prebuilt": "open-next build && node scripts/build-fixed.mjs && node scripts/prebuilt.mjs pack",
+    "build:fixed": "node scripts/build-fixed.mjs"
   },
   "dependencies": {
     "@opennextjs/aws": "4.1.5",

@@ -45,7 +45,7 @@
   "dataRoutes": [
     {
       "page": "/ssr",
-      "dataRouteRegex": "^/_next/data/ypp3Ypa8d5q7Ix_ht1c0h/ssr\\.json$"
+      "dataRouteRegex": "^/_next/data/jDYmabOdpWdxmwfiFtMvN/ssr\\.json$"
     }
   ],
   "rsc": {

@@ -1,4 +1,7 @@
 /node_modules
 /.next
 /.open-next
+/.open-next-fixed
+/vendor/node_modules
+/vendor/package-lock.json
 next-env.d.ts
