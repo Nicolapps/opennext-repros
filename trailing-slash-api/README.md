@@ -49,14 +49,22 @@ http://localhost:3000/.
 └─────────┴───────────────────┴─────────────────────┴────────────────┴─────────────┘
 ```
 
-## On StackBlitz: prebuilt OpenNext output
+## On StackBlitz: prebuilt output
 
-StackBlitz runs Node in the browser (WebContainers), which cannot load native binaries. `open-next build` needs some:
-it imports `@ast-grep/napi` (a native addon with no WASM fallback published) and installs `sharp` for the image
-optimization function. So on StackBlitz, `npm run repro` builds the app with Next.js, but for OpenNext it uses the
-output of a local `open-next build` that is committed in `prebuilt/`. *Running* that output only needs JavaScript.
+StackBlitz runs Node in the browser (WebContainers), and neither build works there:
+
+- `next build` fails while prerendering, with the WASM build of SWC that WebContainers use
+  (`Error occurred prerendering page "/_global-error" … Invariant: Expected workStore to be initialized. This is a
+  bug in Next.js.`). This is unrelated to OpenNext, and does not happen with a regular Node.
+- `open-next build` needs native binaries: it imports `@ast-grep/napi` (a native addon with no WASM fallback
+  published) and installs `sharp` for the image optimization function.
+
+So on StackBlitz, `npm run repro` builds nothing: it uses the output of a local build, committed in `prebuilt/`
+(`prebuilt/next/` is what `next start` needs from `.next/`, `prebuilt/open-next/` is `.open-next/`, both from the
+same `next build`). *Running* them only needs JavaScript.
 
 `prebuilt/` is regenerated with `npm run build:prebuilt` (`open-next build`, then `scripts/prebuilt.mjs pack`). To keep
-it small, the files of the bundled `node_modules` that are identical to the installed ones are listed in
-`prebuilt/node_modules.json` rather than stored, and copied back from `node_modules` at startup; the files that
-OpenNext patches are stored as is. Outside StackBlitz, `prebuilt/` is not used, unless you set `USE_PREBUILT=1`.
+it small, the webpack cache, standalone output and build traces of `.next/` are left out, and the files of the bundled `node_modules` of
+OpenNext that are identical to the installed ones are listed in `prebuilt/node_modules.json` rather than stored, and
+copied back from `node_modules` at startup; the files that OpenNext patches are stored as is. Outside StackBlitz,
+`prebuilt/` is not used, unless you set `USE_PREBUILT=1`.

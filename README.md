@@ -23,14 +23,16 @@ structure:
   comparison table: request | `next start` | OpenNext
 - `compare.mjs` — the requests of the comparison; `app/page.tsx` renders the same table at http://localhost:3000/
 - `open-next.config.ts` — runs OpenNext as a [local Node server](https://opennext.js.org/aws/contribute/local_run)
-- `prebuilt/` — the output of `open-next build`, only used on StackBlitz (see below)
+- `prebuilt/` — the output of `next build` and `open-next build`, only used on StackBlitz (see below)
 
 ## StackBlitz
 
 A folder opens in StackBlitz with `https://stackblitz.com/github/Nicolapps/opennext-repros/tree/<commit-or-branch>/<folder>`,
 which runs `npm install && npm run repro`. The "pinned" links above use commit `f3813d313273`.
 
-StackBlitz runs Node in the browser (WebContainers), without native binaries, and `open-next build` needs some
-(`@ast-grep/napi`, which has no WASM fallback, and an `npm install` of `sharp`). So on StackBlitz, the app is built with Next.js,
-but the OpenNext server runs from the output of a local `open-next build`, committed in `prebuilt/` (regenerated with
-`npm run build:prebuilt`). Locally, `npm run repro` always builds OpenNext from scratch, and `prebuilt/` is not used.
+StackBlitz runs Node in the browser (WebContainers), where neither build works: `next build` fails while prerendering
+with the WASM build of SWC (`Invariant: Expected workStore to be initialized. This is a bug in Next.js.`, unrelated to
+OpenNext), and `open-next build` needs native binaries (`@ast-grep/napi`, which has no WASM fallback, and an
+`npm install` of `sharp`). So on StackBlitz, `npm run repro` builds nothing: both servers run from the output of a local
+build, committed in `prebuilt/` (regenerated with `npm run build:prebuilt`). Locally, `npm run repro` always builds from
+scratch, and `prebuilt/` is not used.

@@ -1,0 +1,8 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/_global-error/page": "/_global-error",
+  "/has/page": "/has",
+  "/matched/page": "/matched",
+  "/missing/page": "/missing",
+  "/page": "/"
+}

@@ -1,4 +1,4 @@
-// Builds the app once for each target, starts both servers, and prints the comparison.
+// Builds the app for both targets, starts both servers, and prints the comparison.
 //   next start → http://localhost:3000        OpenNext (local Node server) → http://localhost:3001
 //   counter.mjs (the data source of the cached fetch) → http://localhost:3002
 import { execSync, spawn } from "node:child_process";
@@ -9,9 +9,8 @@ const OPENNEXT_PORT = process.env.OPENNEXT_PORT ?? "3001";
 const run = (command) => execSync(command, { stdio: "inherit" });
 
 if (process.versions.webcontainer || process.env.USE_PREBUILT) {
-  // StackBlitz: the OpenNext build needs native binaries, so use the committed output of `npm run build:prebuilt`.
-  console.log("Using the prebuilt OpenNext output from prebuilt/ instead of building it (see README).\n");
-  run("npm run build");
+  // StackBlitz: neither build works there, so use the committed output of `npm run build:prebuilt`.
+  console.log("Using the prebuilt output from prebuilt/ instead of building (see README).\n");
   run("node scripts/prebuilt.mjs unpack");
 } else {
   run("npx open-next build"); // runs `npm run build` (next build), then bundles .next into .open-next

@@ -1,0 +1,1 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[628],{276:(_,n,r)=>{"use strict";r.r(n),r.d(n,{__N_SSP:()=>e,default:()=>u});var s=r(7876),e=!0;function u({query:_}){return(0,s.jsx)("pre",{children:JSON.stringify(_)})}},5836:(_,n,r)=>{(window.__NEXT_P=window.__NEXT_P||[]).push(["/ssr",function(){return r(276)}])}},_=>{_.O(0,[636,593,792],()=>_(_.s=5836)),_N_E=_.O()}]);
