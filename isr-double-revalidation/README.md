@@ -1,7 +1,5 @@
 # A stale ISR page (Pages Router) is regenerated twice on OpenNext
 
-[Open in StackBlitz](https://stackblitz.com/github/Nicolapps/opennext-repros/tree/main/isr-double-revalidation)
-
 ## What is wrong
 
 When a stale ISR page is requested, OpenNext serves the stale version and sends a message to its revalidation queue,
@@ -10,95 +8,71 @@ regenerate the page in the background of the request itself (`patchBackgroundRev
 [`build/patch/patches/patchBackgroundRevalidation.ts`](https://github.com/opennextjs/opennextjs-aws/blob/main/packages/open-next/src/build/patch/patches/patchBackgroundRevalidation.ts)).
 
 The patch looks for `!cachedResponse.isStale || context.isPrefetch` in `next/dist/server/response-cache/index.js`.
-In recent versions of Next.js the variable is named `previousIncrementalCacheEntry`, so the patch silently does not
-apply anymore, and every stale hit renders the page **twice**: once by Next.js, once by the revalidation queue.
+It silently does not apply anymore, for two reasons:
 
-| Request                                                                | Expected (`next start`) | Actual (OpenNext 4.1.5) | With the proposed fix |
-| ---------------------------------------------------------------------- | ----------------------- | ----------------------- | --------------------- |
-| `GET /pages-isr/<id>` (1st request: not cached yet)                    | `200, 1 render`         | `200, 1 render`         | `200, 1 render`       |
-| `GET /pages-isr/<id>` (3s later: stale, regenerated in the background) | `200, 1 render`         | `200, 2 renders`        | `200, 2 renders`      |
-| `GET /isr/<id>` (1st request: not cached yet)                          | `200, 1 render`         | `200, 1 render`         | `200, 1 render`       |
-| `GET /isr/<id>` (3s later: stale, regenerated in the background)       | `200, 1 render`         | `200, 1 render`         | `200, 1 render`       |
+- in recent versions of Next.js the variable is named `previousIncrementalCacheEntry`;
+- pages run from the compiled runtime bundles of Next.js (`next/dist/compiled/next-server/pages.runtime.prod.js`,
+  `app-page.runtime.prod.js`, …), which have their own minified copy of the response cache
+  (`!a.isStale||r.isPrefetch`), and these files are not patched.
 
-In this setup, only the Pages Router page (`/pages-isr/<id>`) is rendered twice; the App Router page (`/isr/<id>`)
-is included for comparison.
+So every stale hit renders the page **twice**: once by Next.js, once by the revalidation queue.
 
-## The repro
+| `npm run check`                                                        | `next/` (expected) | `opennext/` (4.1.5)  | `opennext-patched/` |
+| ---------------------------------------------------------------------- | ------------------ | -------------------- | ------------------- |
+| `GET /pages-isr/<id>` (1st request: not cached yet)                    | `200, 1 render`    | `200, 1 render`      | `200, 1 render`     |
+| `GET /pages-isr/<id>` (3s later: stale, regenerated in the background) | `200, 1 render`    | **`200, 2 renders`** | `200, 1 render`     |
+| `GET /isr/<id>` (1st request: not cached yet)                          | `200, 1 render`    | `200, 1 render`      | `200, 1 render`     |
+| `GET /isr/<id>` (3s later: stale, regenerated in the background)       | `200, 1 render`    | `200, 1 render`      | `200, 1 render`     |
 
-- `pages/pages-isr/[id].tsx` — a Pages Router ISR page (`revalidate: 2`, `fallback: "blocking"`, nothing prerendered
-  at build time); `app/isr/[id]/page.tsx` — the same with the App Router
+The App Router page (`/isr/<id>`) has the same problem, but it does not show here: with the `direct` queue of the
+local server, the second regeneration starts while the first one is still running in the same process, and Next.js
+merges the two. With a real queue, both happen.
+
+## Layout
+
+The same minimal app, three times. The app source is identical in the three folders; they only differ in
+`package.json` (dependencies and scripts), in the lockfile, and in the OpenNext-only files.
+
+| Folder | What it runs | Result |
+| ------ | ------------ | ------ |
+| [`next/`](./next) | Next.js (`next build`, `next start`) | expected |
+| [`opennext/`](./opennext) | `@opennextjs/aws` 4.1.5, as a [local Node server](https://opennext.js.org/aws/contribute/local_run) | the bug |
+| [`opennext-patched/`](./opennext-patched) | the same, with a patched `@opennextjs/aws` (`vendor/opennextjs-aws-4.1.5-background-revalidation-patch.tgz`) | same as `next/` |
+
+- `pages/pages-isr/[id].tsx` — a Pages Router ISR page (`revalidate: 2`, `fallback: "blocking"`, nothing prerendered at build time); `app/isr/[id]/page.tsx` — the same with the App Router
 - `lib/count-render.ts` — called on every render of these pages: reports it to the counter
-- `counter.mjs` — a tiny HTTP server on port 3002 that counts the renders per server and page
-- `open-next.config.ts` — runs OpenNext as a [local Node server](https://opennext.js.org/aws/contribute/local_run),
-  with the `direct` revalidation queue
-- `compare.mjs` — on the three servers: requests a new page, counts the renders of the next 3 seconds, and does it again
-- `app/page.tsx` — shows the comparison as a table (takes about 6 seconds to load)
-
-## Versions
-
-`next` 16.3.5 (webpack build), `@opennextjs/aws` 4.1.5 (and 4.1.5 with the proposed fix, see below), Node 22.
+- `counter.mjs` — a tiny HTTP server that counts the renders per page
+- `check.mjs` (`npm run check`) — requests a new page, counts the renders of the next 3 seconds, and does it again (takes about 12 seconds)
+- `open-next.config.ts` (OpenNext copies) — uses the `direct` revalidation queue
+- `open-next.config.ts` (OpenNext copies) — runs OpenNext as a local Node server (`express-dev` wrapper, `fs-dev` caches)
 
 ## Run it
 
+In any of the three folders:
+
 ```sh
 npm install
-npm run repro
+npm run build
+npm start          # the server, on http://localhost:3000; also runs the helper (see below)
 ```
 
-This builds the app with Next.js and OpenNext (`open-next build`), builds it again with the proposed fix of OpenNext
-(`scripts/build-fixed.mjs`, see below), starts `next start` on http://localhost:3000, OpenNext 4.1.5 on
-http://localhost:3001 and OpenNext + fix on http://localhost:3003, and prints the comparison. The same table is rendered at
-http://localhost:3000/. The render counter runs on http://localhost:3002; the comparison takes about 6 seconds.
+and in another terminal, in the same folder:
 
-```
-┌─────────┬──────────────────────────────────────────────────────────────────────────┬─────────────────┬──────────────────┬──────────────────┬────────────────────────────────┐
-│ (index) │ request                                                                  │ next start      │ OpenNext 4.1.5   │ OpenNext + fix   │                                │
-├─────────┼──────────────────────────────────────────────────────────────────────────┼─────────────────┼──────────────────┼──────────────────┼────────────────────────────────┤
-│ 0       │ 'GET /pages-isr/1p481x (1st request: not cached yet)'                    │ '200, 1 render' │ '200, 1 render'  │ '200, 1 render'  │ 'same'                         │
-│ 1       │ 'GET /pages-isr/1p481x (3s later: stale, regenerated in the background)' │ '200, 1 render' │ '200, 2 renders' │ '200, 2 renders' │ '≠ 4.1.5 differs, fix differs' │
-│ 2       │ 'GET /isr/1p481x (1st request: not cached yet)'                          │ '200, 1 render' │ '200, 1 render'  │ '200, 1 render'  │ 'same'                         │
-│ 3       │ 'GET /isr/1p481x (3s later: stale, regenerated in the background)'       │ '200, 1 render' │ '200, 1 render'  │ '200, 1 render'  │ 'same'                         │
-└─────────┴──────────────────────────────────────────────────────────────────────────┴─────────────────┴──────────────────┴──────────────────┴────────────────────────────────┘
+```sh
+npm run check      # sends the requests to http://localhost:3000 (or SERVER_URL) and prints the results
 ```
 
-## The proposed fix
+Run one folder at a time: they use the same ports (`PORT`, default 3000).
+`npm start` also runs `counter.mjs` (counts the renders) on port 3002 (`COUNTER_PORT`).
 
-`vendor/opennextjs-aws-4.1.5-background-revalidation-patch.tgz` is `@opennextjs/aws` 4.1.5 built from source with a proposed fix
-applied (`pnpm pack` of the package: it differs from the published 4.1.5 only in `dist/build/patch/patches/patchBackgroundRevalidation.js`). The third
-target of the comparison, "OpenNext + fix", is the same app built with it:
+## Versions
 
-- `vendor/package.json` depends on the tarball. `scripts/build-fixed.mjs` installs it in `vendor/node_modules`
-  (`npm install` in `vendor/`), then runs its `open-next build` with `open-next.fixed.config.ts`: the same
-  configuration, except that `next build` is not run again, so that the three servers run the same Next.js build
-  (same `BUILD_ID`). The output is `.open-next-fixed/`.
-- `npm run build:fixed` runs only that step, on the `.next/` of a previous `npx open-next build`.
+`next` 16.3.5 (webpack build), `@opennextjs/aws` 4.1.5, Node 22.
 
-The proposed fix makes the patch match the new variable name, and `server/response-cache/index.js` is indeed
-patched in `.open-next-fixed/` (`if (true)` instead of `if (!previousIncrementalCacheEntry.isStale || context.isPrefetch)`).
-It does not change the result here: with this version of Next.js, the Pages Router runs from
-`next/dist/compiled/next-server/pages.runtime.prod.js`, which bundles its own (minified) copy of the response cache,
-and that file is not patched. The stale Pages Router page is still rendered twice. (Replacing
-`!a.isStale||r.isPrefetch` with `!0` in that file, by hand, brings it down to one render.)
+## The fix
 
-## On StackBlitz: prebuilt output
-
-StackBlitz runs Node in the browser (WebContainers), and neither build works there:
-
-- `next build` fails while prerendering, with the WASM build of SWC that WebContainers use
-  (`Error occurred prerendering page "/_global-error" … Invariant: Expected workStore to be initialized. This is a
-  bug in Next.js.`). This is unrelated to OpenNext, and does not happen with a regular Node.
-- `open-next build` needs native binaries: it imports `@ast-grep/napi` (a native addon with no WASM fallback
-  published) and installs `sharp` for the image optimization function.
-
-So on StackBlitz, `npm run repro` builds nothing: it uses the output of a local build, committed in `prebuilt/`
-(`prebuilt/next/` is what `next start` needs from `.next/`, `prebuilt/open-next/` is `.open-next/`,
-`prebuilt/open-next-fixed/` is `.open-next-fixed/`, all three from the same `next build`). *Running* them only needs JavaScript.
-
-`prebuilt/` is regenerated with `npm run build:prebuilt` (`open-next build`, `scripts/build-fixed.mjs`, then
-`scripts/prebuilt.mjs pack`). To keep it small, the webpack cache, standalone output and build traces of `.next/` are
-left out; the files of the bundled `node_modules` of OpenNext that are identical to the installed ones are listed in
-`prebuilt/node_modules.json` rather than stored, and copied back from `node_modules` at startup (the files that
-OpenNext patches are stored as is); and the files of `.open-next-fixed/` that are identical to the ones of
-`.open-next/` are listed in `prebuilt/open-next-fixed.json` rather than stored, and copied from there at startup (the
-files that the fix changes are stored as is). Outside StackBlitz,
-`prebuilt/` is not used, unless you set `USE_PREBUILT=1`.
+[`fix/background-revalidation-patch`](https://github.com/Nicolapps/opennextjs-aws/tree/fix/background-revalidation-patch)
+([diff](https://github.com/Nicolapps/opennextjs-aws/pull/5/files)).
+`opennext-patched/vendor/opennextjs-aws-4.1.5-background-revalidation-patch.tgz` is `@opennextjs/aws` 4.1.5 built from that branch (`pnpm pack`).
+To try another build of the fix (a [pkg.pr.new](https://pkg.pr.new) preview, for instance), change the
+`"@opennextjs/aws"` line of `opennext-patched/package.json`: see the [README at the root](../README.md#the-patched-opennextjsaws).

@@ -1,0 +1,21 @@
+{
+  "name": "repro-next-data-query-leak",
+  "private": true,
+  "scripts": {
+    "build": "open-next build",
+    "build:next": "next build --webpack",
+    "start": "cd .open-next/server-functions/default && node index.mjs",
+    "check": "node check.mjs"
+  },
+  "dependencies": {
+    "@opennextjs/aws": "file:vendor/opennextjs-aws-4.1.5-next-data-query-leak.tgz",
+    "next": "16.3.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "typescript": "^5"
+  }
+}

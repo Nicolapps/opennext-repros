@@ -1,0 +1,10 @@
+{
+  "next": {
+    "GET /ssr?foo=bar": "query = {\"foo\":\"bar\"}",
+    "GET /_next/data/<buildId>/ssr.json?foo=bar": "query = {\"foo\":\"bar\"}"
+  },
+  "opennext": {
+    "GET /ssr?foo=bar": "query = {\"foo\":\"bar\"}",
+    "GET /_next/data/<buildId>/ssr.json?foo=bar": "query = {\"foo\":\"bar\",\"__nextDataReq\":\"1\"}"
+  }
+}

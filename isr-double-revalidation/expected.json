@@ -1,0 +1,14 @@
+{
+  "next": {
+    "GET /pages-isr/<id> (1st request: not cached yet)": "200, 1 render",
+    "GET /pages-isr/<id> (3s later: stale, regenerated in the background)": "200, 1 render",
+    "GET /isr/<id> (1st request: not cached yet)": "200, 1 render",
+    "GET /isr/<id> (3s later: stale, regenerated in the background)": "200, 1 render"
+  },
+  "opennext": {
+    "GET /pages-isr/<id> (1st request: not cached yet)": "200, 1 render",
+    "GET /pages-isr/<id> (3s later: stale, regenerated in the background)": "200, 2 renders",
+    "GET /isr/<id> (1st request: not cached yet)": "200, 1 render",
+    "GET /isr/<id> (3s later: stale, regenerated in the background)": "200, 1 render"
+  }
+}

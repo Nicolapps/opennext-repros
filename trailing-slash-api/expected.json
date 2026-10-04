@@ -1,0 +1,14 @@
+{
+  "next": {
+    "GET /api/hello": "308 → /api/hello/",
+    "GET /api/hello/": "200",
+    "GET /page": "308 → /page/",
+    "GET /page/": "200"
+  },
+  "opennext": {
+    "GET /api/hello": "200",
+    "GET /api/hello/": "200",
+    "GET /page": "308 → /page/",
+    "GET /page/": "200"
+  }
+}

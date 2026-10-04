@@ -1,0 +1,10 @@
+{
+  "next": {
+    "GET /proxy/some/path": "200 upstream got /some/path",
+    "GET /proxy-fixed": "200 upstream got /fixed"
+  },
+  "opennext": {
+    "GET /proxy/some/path": "500 Internal Server Error",
+    "GET /proxy-fixed": "200 upstream got /fixed"
+  }
+}

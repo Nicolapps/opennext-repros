@@ -1,0 +1,9 @@
+{
+  "name": "opennext-repros",
+  "private": true,
+  "scripts": {
+    "all": "node scripts/run.mjs",
+    "sync": "node scripts/sync.mjs",
+    "check-copies": "node scripts/check-copies.mjs"
+  }
+}

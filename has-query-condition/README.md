@@ -1,7 +1,5 @@
 # `has` / `missing` query conditions match when the query key is absent on OpenNext
 
-[Open in StackBlitz](https://stackblitz.com/github/Nicolapps/opennext-repros/tree/main/has-query-condition)
-
 ## What is wrong
 
 Redirects, rewrites and headers in `next.config.ts` can be restricted with
@@ -13,80 +11,54 @@ tests the value against an empty regex even when the key is absent, so such a co
 - a rule with `has: [{ type: "query", key: "preview" }]` also applies when `preview` is absent;
 - a rule with `missing: [{ type: "query", key: "preview" }]` never applies.
 
-| Request                  | Expected (`next start`)    | Actual (OpenNext 4.1.5)    | With the proposed fix      |
+| `npm run check`          | `next/` (expected)         | `opennext/` (4.1.5)        | `opennext-patched/`        |
 | ------------------------ | -------------------------- | -------------------------- | -------------------------- |
-| `GET /has`               | `200`                      | `307 → /matched`           | `200`                      |
+| `GET /has`               | `200`                      | **`307 → /matched`**       | `200`                      |
 | `GET /has?preview=1`     | `307 → /matched?preview=1` | `307 → /matched?preview=1` | `307 → /matched?preview=1` |
-| `GET /missing`           | `307 → /matched`           | `200`                      | `307 → /matched`           |
+| `GET /missing`           | `307 → /matched`           | **`200`**                  | `307 → /matched`           |
 | `GET /missing?preview=1` | `200`                      | `200`                      | `200`                      |
 
-## The repro
+## Layout
+
+The same minimal app, three times. The app source is identical in the three folders; they only differ in
+`package.json` (dependencies and scripts), in the lockfile, and in the OpenNext-only files.
+
+| Folder | What it runs | Result |
+| ------ | ------------ | ------ |
+| [`next/`](./next) | Next.js (`next build`, `next start`) | expected |
+| [`opennext/`](./opennext) | `@opennextjs/aws` 4.1.5, as a [local Node server](https://opennext.js.org/aws/contribute/local_run) | the bug |
+| [`opennext-patched/`](./opennext-patched) | the same, with a patched `@opennextjs/aws` (`vendor/opennextjs-aws-4.1.5-has-query-missing-key.tgz`) | same as `next/` |
 
 - `next.config.ts` — two redirects to `/matched`: `/has` (with a `has` query condition) and `/missing` (with a `missing` one)
-- `open-next.config.ts` — runs OpenNext as a [local Node server](https://opennext.js.org/aws/contribute/local_run)
-- `compare.mjs` — sends the same requests to the three servers without following redirects
-- `app/page.tsx` — shows the comparison as a table
-
-## Versions
-
-`next` 16.3.5 (webpack build), `@opennextjs/aws` 4.1.5 (and 4.1.5 with the proposed fix, see below), Node 22.
+- `check.mjs` (`npm run check`) — sends the requests above, without following redirects
+- `open-next.config.ts` (OpenNext copies) — runs OpenNext as a local Node server (`express-dev` wrapper, `fs-dev` caches)
 
 ## Run it
 
+In any of the three folders:
+
 ```sh
 npm install
-npm run repro
+npm run build
+npm start          # the server, on http://localhost:3000
 ```
 
-This builds the app with Next.js and OpenNext (`open-next build`), builds it again with the proposed fix of OpenNext
-(`scripts/build-fixed.mjs`, see below), starts `next start` on http://localhost:3000, OpenNext 4.1.5 on
-http://localhost:3001 and OpenNext + fix on http://localhost:3003, and prints the comparison. The same table is rendered at
-http://localhost:3000/.
+and in another terminal, in the same folder:
 
-```
-┌─────────┬──────────────────────────┬────────────────────────────┬────────────────────────────┬────────────────────────────┬────────────────────────────────┐
-│ (index) │ request                  │ next start                 │ OpenNext 4.1.5             │ OpenNext + fix             │                                │
-├─────────┼──────────────────────────┼────────────────────────────┼────────────────────────────┼────────────────────────────┼────────────────────────────────┤
-│ 0       │ 'GET /has'               │ '200'                      │ '307 → /matched'           │ '200'                      │ '≠ 4.1.5 differs, fix matches' │
-│ 1       │ 'GET /has?preview=1'     │ '307 → /matched?preview=1' │ '307 → /matched?preview=1' │ '307 → /matched?preview=1' │ 'same'                         │
-│ 2       │ 'GET /missing'           │ '307 → /matched'           │ '200'                      │ '307 → /matched'           │ '≠ 4.1.5 differs, fix matches' │
-│ 3       │ 'GET /missing?preview=1' │ '200'                      │ '200'                      │ '200'                      │ 'same'                         │
-└─────────┴──────────────────────────┴────────────────────────────┴────────────────────────────┴────────────────────────────┴────────────────────────────────┘
+```sh
+npm run check      # sends the requests to http://localhost:3000 (or SERVER_URL) and prints the results
 ```
 
-## The proposed fix
+Run one folder at a time: they use the same port (`PORT`, default 3000).
 
-`vendor/opennextjs-aws-4.1.5-has-query-missing-key.tgz` is `@opennextjs/aws` 4.1.5 built from source with a proposed fix
-applied (`pnpm pack` of the package: it differs from the published 4.1.5 only in `dist/core/routing/matcher.js`). The third
-target of the comparison, "OpenNext + fix", is the same app built with it:
+## Versions
 
-- `vendor/package.json` depends on the tarball. `scripts/build-fixed.mjs` installs it in `vendor/node_modules`
-  (`npm install` in `vendor/`), then runs its `open-next build` with `open-next.fixed.config.ts`: the same
-  configuration, except that `next build` is not run again, so that the three servers run the same Next.js build
-  (same `BUILD_ID`). The output is `.open-next-fixed/`.
-- `npm run build:fixed` runs only that step, on the `.next/` of a previous `npx open-next build`.
+`next` 16.3.5 (webpack build), `@opennextjs/aws` 4.1.5, Node 22.
 
-With the proposed fix, the `has` and `missing` conditions match like on `next start`.
+## The fix
 
-## On StackBlitz: prebuilt output
-
-StackBlitz runs Node in the browser (WebContainers), and neither build works there:
-
-- `next build` fails while prerendering, with the WASM build of SWC that WebContainers use
-  (`Error occurred prerendering page "/_global-error" … Invariant: Expected workStore to be initialized. This is a
-  bug in Next.js.`). This is unrelated to OpenNext, and does not happen with a regular Node.
-- `open-next build` needs native binaries: it imports `@ast-grep/napi` (a native addon with no WASM fallback
-  published) and installs `sharp` for the image optimization function.
-
-So on StackBlitz, `npm run repro` builds nothing: it uses the output of a local build, committed in `prebuilt/`
-(`prebuilt/next/` is what `next start` needs from `.next/`, `prebuilt/open-next/` is `.open-next/`,
-`prebuilt/open-next-fixed/` is `.open-next-fixed/`, all three from the same `next build`). *Running* them only needs JavaScript.
-
-`prebuilt/` is regenerated with `npm run build:prebuilt` (`open-next build`, `scripts/build-fixed.mjs`, then
-`scripts/prebuilt.mjs pack`). To keep it small, the webpack cache, standalone output and build traces of `.next/` are
-left out; the files of the bundled `node_modules` of OpenNext that are identical to the installed ones are listed in
-`prebuilt/node_modules.json` rather than stored, and copied back from `node_modules` at startup (the files that
-OpenNext patches are stored as is); and the files of `.open-next-fixed/` that are identical to the ones of
-`.open-next/` are listed in `prebuilt/open-next-fixed.json` rather than stored, and copied from there at startup (the
-files that the fix changes are stored as is). Outside StackBlitz,
-`prebuilt/` is not used, unless you set `USE_PREBUILT=1`.
+[`fix/has-query-missing-key`](https://github.com/Nicolapps/opennextjs-aws/tree/fix/has-query-missing-key)
+([diff](https://github.com/Nicolapps/opennextjs-aws/pull/1/files)).
+`opennext-patched/vendor/opennextjs-aws-4.1.5-has-query-missing-key.tgz` is `@opennextjs/aws` 4.1.5 built from that branch (`pnpm pack`).
+To try another build of the fix (a [pkg.pr.new](https://pkg.pr.new) preview, for instance), change the
+`"@opennextjs/aws"` line of `opennext-patched/package.json`: see the [README at the root](../README.md#the-patched-opennextjsaws).

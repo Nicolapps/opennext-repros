@@ -1,88 +1,60 @@
 # `trailingSlash: true` is not applied to `/api/*` routes on OpenNext
 
-[Open in StackBlitz](https://stackblitz.com/github/Nicolapps/opennext-repros/tree/main/trailing-slash-api)
-
 ## What is wrong
 
 With `trailingSlash: true` in `next.config.ts`, Next.js redirects every path without a trailing slash to the one
 with a trailing slash — API routes included. OpenNext skips that redirect for any path starting with `/api/`
 ([`handleTrailingSlashRedirect` in `core/routing/matcher.ts`](https://github.com/opennextjs/opennextjs-aws/blob/main/packages/open-next/src/core/routing/matcher.ts)).
 
-| Request           | Expected (`next start`) | Actual (OpenNext 4.1.5) | With the proposed fix |
-| ----------------- | ----------------------- | ----------------------- | --------------------- |
-| `GET /api/hello`  | `308 → /api/hello/`     | `200`                   | `308 → /api/hello/`   |
-| `GET /api/hello/` | `200`                   | `200`                   | `200`                 |
-| `GET /page`       | `308 → /page/`          | `308 → /page/`          | `308 → /page/`        |
-| `GET /page/`      | `200`                   | `200`                   | `200`                 |
+| `npm run check`   | `next/` (expected)  | `opennext/` (4.1.5) | `opennext-patched/` |
+| ----------------- | ------------------- | ------------------- | ------------------- |
+| `GET /api/hello`  | `308 → /api/hello/` | **`200`**           | `308 → /api/hello/` |
+| `GET /api/hello/` | `200`               | `200`               | `200`               |
+| `GET /page`       | `308 → /page/`      | `308 → /page/`      | `308 → /page/`      |
+| `GET /page/`      | `200`               | `200`               | `200`               |
 
-## Versions
+## Layout
 
-`next` 16.3.5 (webpack build), `@opennextjs/aws` 4.1.5 (and 4.1.5 with the proposed fix, see below), Node 22.
+The same minimal app, three times. The app source is identical in the three folders; they only differ in
+`package.json` (dependencies and scripts), in the lockfile, and in the OpenNext-only files.
 
-## The repro
+| Folder | What it runs | Result |
+| ------ | ------------ | ------ |
+| [`next/`](./next) | Next.js (`next build`, `next start`) | expected |
+| [`opennext/`](./opennext) | `@opennextjs/aws` 4.1.5, as a [local Node server](https://opennext.js.org/aws/contribute/local_run) | the bug |
+| [`opennext-patched/`](./opennext-patched) | the same, with a patched `@opennextjs/aws` (`vendor/opennextjs-aws-4.1.5-trailing-slash-api.tgz`) | same as `next/` |
 
 - `next.config.ts` — `trailingSlash: true`
 - `app/api/hello/route.ts` — the API route; `app/page/page.tsx` — a regular page, as a control
-- `open-next.config.ts` — runs OpenNext as a [local Node server](https://opennext.js.org/aws/contribute/local_run)
-- `compare.mjs` — sends the same requests to the three servers without following redirects
-- `app/page.tsx` — shows the comparison as a table
+- `check.mjs` (`npm run check`) — sends the requests above, without following redirects
+- `open-next.config.ts` (OpenNext copies) — runs OpenNext as a local Node server (`express-dev` wrapper, `fs-dev` caches)
 
 ## Run it
 
+In any of the three folders:
+
 ```sh
 npm install
-npm run repro
+npm run build
+npm start          # the server, on http://localhost:3000
 ```
 
-This builds the app with Next.js and OpenNext (`open-next build`), builds it again with the proposed fix of OpenNext
-(`scripts/build-fixed.mjs`, see below), starts `next start` on http://localhost:3000, OpenNext 4.1.5 on
-http://localhost:3001 and OpenNext + fix on http://localhost:3003, and prints the comparison. The same table is rendered at
-http://localhost:3000/.
+and in another terminal, in the same folder:
 
-```
-┌─────────┬───────────────────┬─────────────────────┬────────────────┬─────────────────────┬────────────────────────────────┐
-│ (index) │ request           │ next start          │ OpenNext 4.1.5 │ OpenNext + fix      │                                │
-├─────────┼───────────────────┼─────────────────────┼────────────────┼─────────────────────┼────────────────────────────────┤
-│ 0       │ 'GET /api/hello'  │ '308 → /api/hello/' │ '200'          │ '308 → /api/hello/' │ '≠ 4.1.5 differs, fix matches' │
-│ 1       │ 'GET /api/hello/' │ '200'               │ '200'          │ '200'               │ 'same'                         │
-│ 2       │ 'GET /page'       │ '308 → /page/'      │ '308 → /page/' │ '308 → /page/'      │ 'same'                         │
-│ 3       │ 'GET /page/'      │ '200'               │ '200'          │ '200'               │ 'same'                         │
-└─────────┴───────────────────┴─────────────────────┴────────────────┴─────────────────────┴────────────────────────────────┘
+```sh
+npm run check      # sends the requests to http://localhost:3000 (or SERVER_URL) and prints the results
 ```
 
-## The proposed fix
+Run one folder at a time: they use the same port (`PORT`, default 3000).
 
-`vendor/opennextjs-aws-4.1.5-trailing-slash-api.tgz` is `@opennextjs/aws` 4.1.5 built from source with a proposed fix
-applied (`pnpm pack` of the package: it differs from the published 4.1.5 only in `dist/core/routing/matcher.js`). The third
-target of the comparison, "OpenNext + fix", is the same app built with it:
+## Versions
 
-- `vendor/package.json` depends on the tarball. `scripts/build-fixed.mjs` installs it in `vendor/node_modules`
-  (`npm install` in `vendor/`), then runs its `open-next build` with `open-next.fixed.config.ts`: the same
-  configuration, except that `next build` is not run again, so that the three servers run the same Next.js build
-  (same `BUILD_ID`). The output is `.open-next-fixed/`.
-- `npm run build:fixed` runs only that step, on the `.next/` of a previous `npx open-next build`.
+`next` 16.3.5 (webpack build), `@opennextjs/aws` 4.1.5, Node 22.
 
-With the proposed fix, `/api/hello` is redirected to `/api/hello/` like on `next start`.
+## The fix
 
-## On StackBlitz: prebuilt output
-
-StackBlitz runs Node in the browser (WebContainers), and neither build works there:
-
-- `next build` fails while prerendering, with the WASM build of SWC that WebContainers use
-  (`Error occurred prerendering page "/_global-error" … Invariant: Expected workStore to be initialized. This is a
-  bug in Next.js.`). This is unrelated to OpenNext, and does not happen with a regular Node.
-- `open-next build` needs native binaries: it imports `@ast-grep/napi` (a native addon with no WASM fallback
-  published) and installs `sharp` for the image optimization function.
-
-So on StackBlitz, `npm run repro` builds nothing: it uses the output of a local build, committed in `prebuilt/`
-(`prebuilt/next/` is what `next start` needs from `.next/`, `prebuilt/open-next/` is `.open-next/`,
-`prebuilt/open-next-fixed/` is `.open-next-fixed/`, all three from the same `next build`). *Running* them only needs JavaScript.
-
-`prebuilt/` is regenerated with `npm run build:prebuilt` (`open-next build`, `scripts/build-fixed.mjs`, then
-`scripts/prebuilt.mjs pack`). To keep it small, the webpack cache, standalone output and build traces of `.next/` are
-left out; the files of the bundled `node_modules` of OpenNext that are identical to the installed ones are listed in
-`prebuilt/node_modules.json` rather than stored, and copied back from `node_modules` at startup (the files that
-OpenNext patches are stored as is); and the files of `.open-next-fixed/` that are identical to the ones of
-`.open-next/` are listed in `prebuilt/open-next-fixed.json` rather than stored, and copied from there at startup (the
-files that the fix changes are stored as is). Outside StackBlitz,
-`prebuilt/` is not used, unless you set `USE_PREBUILT=1`.
+[`fix/trailing-slash-api`](https://github.com/Nicolapps/opennextjs-aws/tree/fix/trailing-slash-api)
+([diff](https://github.com/Nicolapps/opennextjs-aws/pull/2/files)).
+`opennext-patched/vendor/opennextjs-aws-4.1.5-trailing-slash-api.tgz` is `@opennextjs/aws` 4.1.5 built from that branch (`pnpm pack`).
+To try another build of the fix (a [pkg.pr.new](https://pkg.pr.new) preview, for instance), change the
+`"@opennextjs/aws"` line of `opennext-patched/package.json`: see the [README at the root](../README.md#the-patched-opennextjsaws).

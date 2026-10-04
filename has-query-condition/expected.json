@@ -1,0 +1,14 @@
+{
+  "next": {
+    "GET /has": "200",
+    "GET /has?preview=1": "307 → /matched?preview=1",
+    "GET /missing": "307 → /matched",
+    "GET /missing?preview=1": "200"
+  },
+  "opennext": {
+    "GET /has": "307 → /matched",
+    "GET /has?preview=1": "307 → /matched?preview=1",
+    "GET /missing": "200",
+    "GET /missing?preview=1": "200"
+  }
+}

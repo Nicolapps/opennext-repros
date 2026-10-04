@@ -1,0 +1,44 @@
+name: Repros
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check-copies:
+    name: The three copies of each repro only differ in what is allowed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run check-copies
+
+  repro:
+    # Each job builds and starts one copy, runs its `npm run check`, and compares the results with <bug>/expected.json.
+    # The "opennext 4.1.5" jobs pass when the bug is observed as documented: green means "reproduced".
+    name: ${{ matrix.bug }} / ${{ matrix.copy.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        bug:
+          - trailing-slash-api
+          - has-query-condition
+          - external-rewrite-port
+          - next-data-query-leak
+          - isr-double-revalidation
+          - revalidate-tag-stale-fetch
+        copy:
+          - { folder: next, name: next (expected) }
+          - { folder: opennext, name: opennext 4.1.5 (bug reproduced) }
+          - { folder: opennext-patched, name: opennext patched (fixed) }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/run.mjs ${{ matrix.bug }} ${{ matrix.copy.folder }}
