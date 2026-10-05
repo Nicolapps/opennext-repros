@@ -104,7 +104,7 @@ Each `opennext-patched/` depends on a [pkg.pr.new](https://pkg.pr.new) preview o
 `Pre-release` workflow of the repository from the branch of the fix (linked in the README of the repro):
 
 ```json
-"@opennextjs/aws": "https://pkg.pr.new/Nicolapps/opennextjs-aws/@opennextjs/aws@afeae9a",
+"@opennextjs/aws": "https://pkg.pr.new/Nicolapps/opennextjs-aws/@opennextjs/aws@7ae94c9",
 ```
 
 The URL is `https://pkg.pr.new/<owner>/<repo>/@opennextjs/aws@<commit>`, where `<owner>/<repo>` is the repository
