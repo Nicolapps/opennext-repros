@@ -3,7 +3,7 @@
 Minimal reproductions of behaviour differences between Next.js and the same app built with
 [OpenNext](https://opennext.js.org/aws) (`@opennextjs/aws`), each with a proposed fix.
 
-| Repro | Expected (Next.js) | Actual (`@opennextjs/aws` 4.1.5) |
+| Repro | Expected (Next.js) | Actual (`@opennextjs/aws`) |
 | ----- | ------------------ | -------------------------------- |
 | [`trailing-slash-api`](./trailing-slash-api) | With `trailingSlash: true`, `/api/hello` redirects to `/api/hello/` (308). | No redirect for `/api/*` routes (200). |
 | [`has-query-condition`](./has-query-condition) | A `has` / `missing` condition of type `query` without `value` tests whether the key is present. | It matches whether the key is present or not. |
@@ -20,10 +20,10 @@ One folder per repro, with three copies of the same minimal app:
 
 ```
 <repro>/
-  README.md            what is wrong, expected (Next.js) vs actual (OpenNext 4.1.5), with the results of the three copies
+  README.md            what is wrong, expected (Next.js) vs actual (OpenNext), with the results of the three copies
   expected.json        the same results, as data (checked by the CI)
   next/                plain Next.js
-  opennext/            the same app + @opennextjs/aws 4.1.5: shows the bug
+  opennext/            the same app + the released @opennextjs/aws: shows the bug
   opennext-patched/    the same app + the patched @opennextjs/aws: shows the fix
 ```
 
@@ -96,7 +96,7 @@ For each copy, this runs `npm ci`, `npm run build`, `npm start` and `npm run che
 ```
 
 The [CI](./.github/workflows/repros.yml) runs the same thing, with one job per copy. A green
-"… / opennext 4.1.5 (bug reproduced)" job means that the bug was observed as documented.
+"… / opennext (bug reproduced)" job means that the bug was observed as documented.
 
 ## The patched `@opennextjs/aws`
 

@@ -8,8 +8,8 @@
     "check": "node check.mjs"
   },
   "dependencies": {
-    "@opennextjs/aws": "https://pkg.pr.new/Nicolapps/opennextjs-aws/@opennextjs/aws@7ae94c9",
-    "next": "16.3.5",
+    "@opennextjs/aws": "https://pkg.pr.new/Nicolapps/opennextjs-aws/@opennextjs/aws@5abb421",
+    "next": "16.3.8",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },

@@ -14,7 +14,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { ALLOWED, BUGS, listFiles, openNextPackageJson, readJson, ROOT } from "./lib.mjs";
 
-const OPENNEXT_VERSION = "4.1.5";
+// The release used by `opennext/` when its package.json does not pin one yet
+const OPENNEXT_VERSION = "4.1.7";
 const relock = process.argv.includes("--lock");
 
 function lock(dir) {
@@ -56,12 +57,14 @@ for (const bug of BUGS) {
     // 3. package.json: the one of next/ + OpenNext
     const packageJsonPath = path.join(target, "package.json");
     const before = fs.existsSync(packageJsonPath) ? fs.readFileSync(packageJsonPath, "utf8") : "";
-    let version = OPENNEXT_VERSION;
-    if (copy === "opennext-patched") {
-      // Keep the dependency that is there (a pkg.pr.new URL); fall back to a tarball in vendor/ if there is one
+    // Keep the dependency that is there: the release of `opennext/`, the pkg.pr.new URL of `opennext-patched/`
+    let version = before && JSON.parse(before).dependencies?.["@opennextjs/aws"];
+    if (!version && copy === "opennext-patched") {
+      // Fall back to a tarball in vendor/ if there is one
       const [tarball] = listFiles(target).filter(ALLOWED.patchedOnly);
-      version = (before && JSON.parse(before).dependencies?.["@opennextjs/aws"]) || `file:${tarball}`;
+      version = `file:${tarball}`;
     }
+    version ||= OPENNEXT_VERSION;
     const after = `${JSON.stringify(openNextPackageJson(nextPackageJson, version), null, 2)}\n`;
     fs.writeFileSync(packageJsonPath, after);
 

@@ -19,7 +19,7 @@ jobs:
 
   repro:
     # Each job builds and starts one copy, runs its `npm run check`, and compares the results with <bug>/expected.json.
-    # The "opennext 4.1.5" jobs pass when the bug is observed as documented: green means "reproduced".
+    # The "opennext" jobs pass when the bug is observed as documented: green means "reproduced".
     name: ${{ matrix.bug }} / ${{ matrix.copy.name }}
     runs-on: ubuntu-latest
     strategy:
@@ -34,7 +34,7 @@ jobs:
           - revalidate-tag-stale-fetch
         copy:
           - { folder: next, name: next (expected) }
-          - { folder: opennext, name: opennext 4.1.5 (bug reproduced) }
+          - { folder: opennext, name: opennext (bug reproduced) }
           - { folder: opennext-patched, name: opennext patched (fixed) }
     steps:
       - uses: actions/checkout@v4
