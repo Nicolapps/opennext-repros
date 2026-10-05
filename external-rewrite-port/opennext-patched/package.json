@@ -9,7 +9,7 @@
     "check": "node check.mjs"
   },
   "dependencies": {
-    "@opennextjs/aws": "file:vendor/opennextjs-aws-4.1.5-external-rewrite-host-port.tgz",
+    "@opennextjs/aws": "https://pkg.pr.new/Nicolapps/opennextjs-aws/@opennextjs/aws@934d978",
     "next": "16.3.5",
     "react": "19.3.0",
     "react-dom": "19.3.0"

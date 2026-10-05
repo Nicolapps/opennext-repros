@@ -2,7 +2,7 @@
 //   - package.json: only the "@opennextjs/aws" dependency and the scripts that build and run the server
 //   - package-lock.json
 //   - open-next.config.ts: only in the OpenNext copies, identical in both
-//   - vendor/*.tgz: only in opennext-patched/
+//   - vendor/*.tgz: only in opennext-patched/ (optional: a locally built tarball of the patched package)
 // Every other file must exist in the three copies, byte for byte identical. Fix with `npm run sync`.
 import fs from "node:fs";
 import path from "node:path";

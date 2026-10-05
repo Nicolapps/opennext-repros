@@ -6,7 +6,7 @@
 // What is edited by hand:
 //   <bug>/next/**                              the app, its `npm run check`, its helper
 //   <bug>/opennext/open-next.config.ts         the OpenNext configuration (copied to opennext-patched/)
-//   <bug>/opennext-patched/vendor/*.tgz        the patched @opennextjs/aws
+//   <bug>/opennext-patched/vendor/*.tgz        optional: a locally built tarball of the patched @opennextjs/aws
 //   the "@opennextjs/aws" line of <bug>/opennext-patched/package.json (kept as is; see the README)
 // Everything else in opennext/ and opennext-patched/ is overwritten.
 import { execSync } from "node:child_process";
@@ -58,7 +58,7 @@ for (const bug of BUGS) {
     const before = fs.existsSync(packageJsonPath) ? fs.readFileSync(packageJsonPath, "utf8") : "";
     let version = OPENNEXT_VERSION;
     if (copy === "opennext-patched") {
-      // Keep the dependency that is there (a pkg.pr.new URL, for instance); default to the tarball of vendor/
+      // Keep the dependency that is there (a pkg.pr.new URL); fall back to a tarball in vendor/ if there is one
       const [tarball] = listFiles(target).filter(ALLOWED.patchedOnly);
       version = (before && JSON.parse(before).dependencies?.["@opennextjs/aws"]) || `file:${tarball}`;
     }

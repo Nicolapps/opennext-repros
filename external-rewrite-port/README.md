@@ -32,7 +32,7 @@ The same minimal app, three times. The app source is identical in the three fold
 | ------ | ------------ | ------ |
 | [`next/`](./next) | Next.js (`next build`, `next start`) | expected |
 | [`opennext/`](./opennext) | `@opennextjs/aws` 4.1.5, as a [local Node server](https://opennext.js.org/aws/contribute/local_run) | the bug |
-| [`opennext-patched/`](./opennext-patched) | the same, with a patched `@opennextjs/aws` (`vendor/opennextjs-aws-4.1.5-external-rewrite-host-port.tgz`) | same as `next/` |
+| [`opennext-patched/`](./opennext-patched) | the same, with the patched `@opennextjs/aws` ([pkg.pr.new](https://pkg.pr.new/Nicolapps/opennextjs-aws/@opennextjs/aws@934d978) preview of the fix) | same as `next/` |
 
 - `next.config.ts` — the two rewrites: `/proxy/:path*` (with params) and `/proxy-fixed` (without, as a control)
 - `upstream.mjs` — the destination of the rewrites: a tiny HTTP server that answers with the URL it got
@@ -67,6 +67,7 @@ Run one folder at a time: they use the same ports (`PORT`, default 3000).
 
 [`fix/external-rewrite-host-port`](https://github.com/Nicolapps/opennextjs-aws/tree/fix/external-rewrite-host-port)
 ([diff](https://github.com/Nicolapps/opennextjs-aws/pull/3/files)).
-`opennext-patched/vendor/opennextjs-aws-4.1.5-external-rewrite-host-port.tgz` is `@opennextjs/aws` 4.1.5 built from that branch (`pnpm pack`).
-To try another build of the fix (a [pkg.pr.new](https://pkg.pr.new) preview, for instance), change the
+`opennext-patched/` installs the [pkg.pr.new](https://pkg.pr.new) preview of that branch at commit `934d978`:
+`https://pkg.pr.new/Nicolapps/opennextjs-aws/@opennextjs/aws@934d978`.
+To try another build of the fix, change the
 `"@opennextjs/aws"` line of `opennext-patched/package.json`: see the [README at the root](../README.md#the-patched-opennextjsaws).

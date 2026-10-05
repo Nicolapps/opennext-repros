@@ -37,7 +37,7 @@ The same minimal app, three times. The app source is identical in the three fold
 | ------ | ------------ | ------ |
 | [`next/`](./next) | Next.js (`next build`, `next start`) | expected |
 | [`opennext/`](./opennext) | `@opennextjs/aws` 4.1.5, as a [local Node server](https://opennext.js.org/aws/contribute/local_run) | the bug |
-| [`opennext-patched/`](./opennext-patched) | the same, with a patched `@opennextjs/aws` (`vendor/opennextjs-aws-4.1.5-background-revalidation-patch.tgz`) | same as `next/` |
+| [`opennext-patched/`](./opennext-patched) | the same, with the patched `@opennextjs/aws` ([pkg.pr.new](https://pkg.pr.new/Nicolapps/opennextjs-aws/@opennextjs/aws@652643f) preview of the fix) | same as `next/` |
 
 - `pages/pages-isr/[id].tsx` — a Pages Router ISR page (`revalidate: 2`, `fallback: "blocking"`, nothing prerendered at build time); `app/isr/[id]/page.tsx` — the same with the App Router
 - `lib/count-render.ts` — called on every render of these pages: reports it to the counter
@@ -73,6 +73,7 @@ Run one folder at a time: they use the same ports (`PORT`, default 3000).
 
 [`fix/background-revalidation-patch`](https://github.com/Nicolapps/opennextjs-aws/tree/fix/background-revalidation-patch)
 ([diff](https://github.com/Nicolapps/opennextjs-aws/pull/5/files)).
-`opennext-patched/vendor/opennextjs-aws-4.1.5-background-revalidation-patch.tgz` is `@opennextjs/aws` 4.1.5 built from that branch (`pnpm pack`).
-To try another build of the fix (a [pkg.pr.new](https://pkg.pr.new) preview, for instance), change the
+`opennext-patched/` installs the [pkg.pr.new](https://pkg.pr.new) preview of that branch at commit `652643f`:
+`https://pkg.pr.new/Nicolapps/opennextjs-aws/@opennextjs/aws@652643f`.
+To try another build of the fix, change the
 `"@opennextjs/aws"` line of `opennext-patched/package.json`: see the [README at the root](../README.md#the-patched-opennextjsaws).

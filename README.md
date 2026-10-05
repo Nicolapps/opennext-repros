@@ -33,7 +33,6 @@ The app source is identical, byte for byte, in the three copies. They only diffe
 - `package-lock.json`
 - `open-next.config.ts` (OpenNext copies only, identical in both): runs OpenNext as a
   [local Node server](https://opennext.js.org/aws/contribute/local_run)
-- `vendor/*.tgz` (`opennext-patched/` only): the patched `@opennextjs/aws`
 
 ## Run a copy
 
@@ -101,26 +100,17 @@ The [CI](./.github/workflows/repros.yml) runs the same thing, with one job per c
 
 ## The patched `@opennextjs/aws`
 
-Each `opennext-patched/` depends on a tarball checked in next to it: `@opennextjs/aws` 4.1.5 built from the branch
-of the fix (`pnpm pack` in `packages/open-next`; the branch is linked in the README of the repro).
+Each `opennext-patched/` depends on a [pkg.pr.new](https://pkg.pr.new) preview of `@opennextjs/aws`, built by the
+`Pre-release` workflow of the repository from the branch of the fix (linked in the README of the repro):
 
 ```json
-"@opennextjs/aws": "file:vendor/opennextjs-aws-4.1.5-trailing-slash-api.tgz",
+"@opennextjs/aws": "https://pkg.pr.new/Nicolapps/opennextjs-aws/@opennextjs/aws@afeae9a",
 ```
 
-To use another build, change that one line of `opennext-patched/package.json`, then run `npm install` in that folder
-(which updates the lockfile). For a [pkg.pr.new](https://pkg.pr.new) preview of a commit:
-
-```json
-"@opennextjs/aws": "https://pkg.pr.new/<owner>/<repo>/@opennextjs/aws@<commit>",
-```
-
-where `<owner>/<repo>` is the repository whose workflow published the preview, and `<commit>` is the commit hash as
-printed by the workflow (7 characters when it publishes with `--compact`). The short form,
-`https://pkg.pr.new/@opennextjs/aws@<commit>`, only finds the previews published from the repository that the npm
-package points to (its `repository` field), not the ones published from a fork.
-
-`npm run sync` keeps that line as it is.
+The URL is `https://pkg.pr.new/<owner>/<repo>/@opennextjs/aws@<commit>`, where `<owner>/<repo>` is the repository
+whose workflow published the preview and `<commit>` is the commit hash as printed by the workflow. To use another
+build, change that one line of `opennext-patched/package.json`, then run `npm install` in that folder (which updates
+the lockfile). `npm run sync` keeps that line as it is.
 
 ## Maintaining the copies
 
@@ -128,7 +118,7 @@ package points to (its `repository` field), not the ones published from a fork.
 `opennext-patched/` from it: it copies the app, writes their `package.json` (the one of `next/` + the OpenNext
 dependency and scripts), and updates the lockfiles when needed (`npm run sync -- --lock` to regenerate them all).
 The only files of the derived copies that are edited by hand are `opennext/open-next.config.ts` (copied to
-`opennext-patched/`), `opennext-patched/vendor/*.tgz`, and the `"@opennextjs/aws"` line of
+`opennext-patched/`) and the `"@opennextjs/aws"` line of
 `opennext-patched/package.json`.
 
 `npm run check-copies` (`scripts/check-copies.mjs`, also run by the CI) fails if the copies of a repro differ outside

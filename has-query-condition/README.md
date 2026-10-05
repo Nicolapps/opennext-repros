@@ -27,7 +27,7 @@ The same minimal app, three times. The app source is identical in the three fold
 | ------ | ------------ | ------ |
 | [`next/`](./next) | Next.js (`next build`, `next start`) | expected |
 | [`opennext/`](./opennext) | `@opennextjs/aws` 4.1.5, as a [local Node server](https://opennext.js.org/aws/contribute/local_run) | the bug |
-| [`opennext-patched/`](./opennext-patched) | the same, with a patched `@opennextjs/aws` (`vendor/opennextjs-aws-4.1.5-has-query-missing-key.tgz`) | same as `next/` |
+| [`opennext-patched/`](./opennext-patched) | the same, with the patched `@opennextjs/aws` ([pkg.pr.new](https://pkg.pr.new/Nicolapps/opennextjs-aws/@opennextjs/aws@0911f58) preview of the fix) | same as `next/` |
 
 - `next.config.ts` — two redirects to `/matched`: `/has` (with a `has` query condition) and `/missing` (with a `missing` one)
 - `check.mjs` (`npm run check`) — sends the requests above, without following redirects
@@ -59,6 +59,7 @@ Run one folder at a time: they use the same port (`PORT`, default 3000).
 
 [`fix/has-query-missing-key`](https://github.com/Nicolapps/opennextjs-aws/tree/fix/has-query-missing-key)
 ([diff](https://github.com/Nicolapps/opennextjs-aws/pull/1/files)).
-`opennext-patched/vendor/opennextjs-aws-4.1.5-has-query-missing-key.tgz` is `@opennextjs/aws` 4.1.5 built from that branch (`pnpm pack`).
-To try another build of the fix (a [pkg.pr.new](https://pkg.pr.new) preview, for instance), change the
+`opennext-patched/` installs the [pkg.pr.new](https://pkg.pr.new) preview of that branch at commit `0911f58`:
+`https://pkg.pr.new/Nicolapps/opennextjs-aws/@opennextjs/aws@0911f58`.
+To try another build of the fix, change the
 `"@opennextjs/aws"` line of `opennext-patched/package.json`: see the [README at the root](../README.md#the-patched-opennextjsaws).
