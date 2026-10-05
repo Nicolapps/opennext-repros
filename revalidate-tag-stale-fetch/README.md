@@ -33,7 +33,7 @@ The same minimal app, three times. The app source is identical in the three fold
 | ------ | ------------ | ------ |
 | [`next/`](./next) | Next.js (`next build`, `next start`) | expected |
 | [`opennext/`](./opennext) | `@opennextjs/aws` 4.1.5, as a [local Node server](https://opennext.js.org/aws/contribute/local_run) | the bug |
-| [`opennext-patched/`](./opennext-patched) | the same, with the patched `@opennextjs/aws` ([pkg.pr.new](https://pkg.pr.new/Nicolapps/opennextjs-aws/@opennextjs/aws@3feb3c3) preview of the fix) | same as `next/` |
+| [`opennext-patched/`](./opennext-patched) | the same, with the patched `@opennextjs/aws` ([pkg.pr.new](https://pkg.pr.new/Nicolapps/opennextjs-aws/@opennextjs/aws@e5d1424) preview of the fix) | same as `next/` |
 
 - `app/data/[id]/route.ts` — returns the result of a cached `fetch` with a tag, and without `next.revalidate`
 - `app/revalidate/[id]/route.ts` — calls `revalidateTag(tag, "max")`
@@ -69,7 +69,7 @@ Run one folder at a time: they use the same ports (`PORT`, default 3000).
 
 [`fix/stale-fetch-cache-last-modified`](https://github.com/Nicolapps/opennextjs-aws/tree/fix/stale-fetch-cache-last-modified)
 ([diff](https://github.com/Nicolapps/opennextjs-aws/pull/6/files)).
-`opennext-patched/` installs the [pkg.pr.new](https://pkg.pr.new) preview of that branch at commit `3feb3c3`:
-`https://pkg.pr.new/Nicolapps/opennextjs-aws/@opennextjs/aws@3feb3c3`.
+`opennext-patched/` installs the [pkg.pr.new](https://pkg.pr.new) preview of that branch at commit `e5d1424`:
+`https://pkg.pr.new/Nicolapps/opennextjs-aws/@opennextjs/aws@e5d1424`.
 To try another build of the fix, change the
 `"@opennextjs/aws"` line of `opennext-patched/package.json`: see the [README at the root](../README.md#the-patched-opennextjsaws).
